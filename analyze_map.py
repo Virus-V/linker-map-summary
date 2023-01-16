@@ -35,21 +35,30 @@ parser.add_argument('--combine', action='store_true',
 args = parser.parse_args()
 
 class SectionSize():
-    code = 0
-    data = 0  # Including metadata like import tables
+    def __init__(self):
+        self.size_list = {}
+
     def total(self):
-        return self.code + self.data
+        return sum(self.size_list.values())
+
     def add_section(self, section, size):
         if section.startswith('.comment'):
             return
         if section.startswith('.debug'):
             return
-        if section.startswith('.ARM.attributes'):
+        if section.startswith('.riscv.attributes'):
             return
-        if section.startswith('.text'):
-            self.code += size
-        elif section != '.bss':
-            self.data += size
+        if section.startswith('.stack'):
+            return
+        if section.startswith('.eh_frame'):
+            return
+        if section.startswith('.rela'):
+            return
+
+        if section in self.size_list:
+            self.size_list[section] += size
+        else:
+            self.size_list[section] = size
 
 size_by_source = {}
 with open(args.map_file) as f:
@@ -70,7 +79,7 @@ with open(args.map_file) as f:
                 print("Warning: discarding line ", split_line)
             split_line = None
 
-        if line.startswith((".", " .", " *fill*")):
+        if line.startswith((".", " .", " *fill*", " COMMON")):
             pieces = line.split(None, 3)  # Don't split paths containing spaces
 
             if line.startswith("."):
@@ -104,11 +113,9 @@ with open(args.map_file) as f:
 # Print out summary
 sources = list(size_by_source.keys())
 sources.sort(key = lambda x: size_by_source[x].total())
-sumtotal = sumcode = sumdata = 0
+# sum_sections = {}
 for source in sources:
     size = size_by_source[source]
-    sumcode += size.code
-    sumdata += size.data
-    sumtotal += size.total()
-    print("%-40s \t%7s  (code: %d data: %d)" % (os.path.normpath(source), size.total(), size.code, size.data))
-print("TOTAL %d  (code: %d data: %d)" % (sumtotal, sumcode, sumdata))
+    #print("%-40s \ttotal:%7s\t(%s)" % (os.path.normpath(source), size.total(), ''.join(['{0}:{1} '.format(k, v) for k,v in size.size_list.items()])))
+    print("%-40s \ttotal:%7s\t(%s)" % (os.path.basename(source), size.total(), ''.join(['{0}:{1} '.format(k, v) for k,v in size.size_list.items()])))
+#print("TOTAL %d  (code: %d data: %d)" % (sumtotal, sumcode, sumdata))

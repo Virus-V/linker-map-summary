@@ -79,7 +79,7 @@ with open(args.map_file) as f:
                 print("Warning: discarding line ", split_line)
             split_line = None
 
-        if line.startswith((".", " .", " *fill*", " COMMON")):
+        if line.startswith((".", " .", " *fill*", " COMMON", " SHARED")):
             pieces = line.split(None, 3)  # Don't split paths containing spaces
 
             if line.startswith("."):

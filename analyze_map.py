@@ -114,8 +114,10 @@ with open(args.map_file) as f:
 sources = list(size_by_source.keys())
 sources.sort(key = lambda x: size_by_source[x].total())
 # sum_sections = {}
+sum_all = 0
 for source in sources:
     size = size_by_source[source]
+    sum_all += size.total()
     #print("%-40s \ttotal:%7s\t(%s)" % (os.path.normpath(source), size.total(), ''.join(['{0}:{1} '.format(k, v) for k,v in size.size_list.items()])))
     print("%-40s \ttotal:%7s\t(%s)" % (os.path.basename(source), size.total(), ''.join(['{0}:{1} '.format(k, v) for k,v in size.size_list.items()])))
-#print("TOTAL %d  (code: %d data: %d)" % (sumtotal, sumcode, sumdata))
+print("TOTAL %d " % sum_all)
